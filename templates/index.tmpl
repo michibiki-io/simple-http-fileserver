@@ -1,0 +1,24 @@
+<!-- templates/index.tmpl -->
+{{ define "content" }}
+<section class="hero is-white mt-5">
+  <div class="hero-body has-text-centered">
+    <img src="/img/hero-logo.svg" width="240px" height="144px" />
+  </div>
+</section>
+
+<div class="container is-max-desktop">
+  <div class="content mx-5">
+    <h2 class="title">What's this ?</h2>
+    <h4 class="subtitle">
+      A simple web file server and build in sipmle file browser.
+    </h2>
+    <h2>Overview</h2>
+    <ul>
+      <li>You can set a public directory and a private directory that is open only to authenticated users.</li>
+      <li>Private directories can be protected by user authentication using JWT Token.</li>
+      <li>It is possible to protect individual folders using the user's group affiliation obtained from LDAP authentication or other sources.</li>
+      <li>It provides APIs to list the files in a directory and to retrieve the files themselves, making it possible to retrieve files from any program other than a browser.</li>
+    </ul>
+  </div>
+</div>
+{{ end }}

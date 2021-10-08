@@ -1,0 +1,199 @@
+<!-- templates/files.tmpl -->
+{{ define "content" }}
+<script type="text/javascript" src="/js/natural-compare-lite.js"></script>
+<script type="text/javascript" src="/js/jquery.lazy.min.js"></script>
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/dataTables.bulma.min.js"></script>
+<script type="text/javascript" src="/js/jquery.lazy.min.js"></script>
+<script type="text/javascript" src="/js/full_numbers_no_ellipses.js"></script>
+<link rel="stylesheet" href="/css/dataTables.bulma.min.css">
+<script>
+// descending order
+var desc = true;
+
+// fileList
+var fileList = [];
+
+// tile or list
+var withThumbnail = false;
+
+$(document).ready(function() {
+  getFileList()
+})
+
+function getFileList() {
+  
+  $("div.modal#loading").addClass("is-active");
+  $("nav#filepath > ul").empty();
+
+  // load directory and files from server API
+  $.ajax({
+    type    : 'POST',
+    url     : '{{ .absoluteFilePath }}',
+    timeout : 5000,
+  }).done(async function(data) {
+    fileList = data["list"].slice()
+    bcList = data["breadcrumb"].slice()
+    bcList.forEach(function(bc){
+      $("nav#filepath > ul").append(`<li><a href="#" ${bc[1] === "" ? "" : "onclick=chdir('" + bc[1] + "')"}><span class="icon is-small"><i class="far fa-folder${bc[1] === "" ? "-open" : ""}" aria-hidden="true"></i></span><span>${bc[0]}</span></a></li>`);
+    });
+    await CreateFileListView();
+    $("div.modal#loading").removeClass("is-active");
+  }).fail(async function(xhr, textStatus, errorThrown) {
+    if (xhr.status === 401) {
+      // redirect
+    } else if (xhr.status === 403) {
+      $("tbody#filelist").append(`<tr><td class='px-5 has-text-left'><span class="icon-text"><span class="icon"><i class="fas fa-ban"></i></span><span>You don't have permission to access this resource.</span></span></td><td class="px-5 has-text-right"></td></tr>`);
+    } else if (xhr.status === 404) {
+      $("tbody#filelist").append(`<tr><td class='px-5 has-text-left'><span class="icon-text"><span class="icon"><i class="fas fa-ban"></i></span><span>The file that you request was not found.</span></span></td><td class="px-5 has-text-right"></td></tr>`);
+    }
+    $("div.modal#loading").removeClass("is-active");
+  });
+}
+
+async function CreateFileListView()
+{
+  $("tbody#filelist").empty();
+  $("table#filelist").addClass("is-hidden");
+  
+  $("table#filelist").dataTable({
+    "data": fileList,
+    "columns" : [
+      { "data": "path",
+        "render" : function(data, type, row, meta){
+          if(type === 'display') {
+            data = `<span class="icon-text" id="listedname"><span class="icon"><i class="far ${row.isDir ? 'fa-folder' : 'fa-file'}"></i></span><a href="${row.path}${row.isDir ? "/" : ""}" ><span>${row.path}</span></a></span>`;
+            data += `<div class="column is-11-mobile is-5-tablet is-4-desktop is-hidden" id="thumbnail"><a href="${row.path}${row.isDir ? "/" : ""}" ><div class="card"><div class="card-image"><figure class="image is-4by3"><img alt="image" class="lazy" src="/img/loading02.svg" data-src="${row.isDir ? "/img/folder-regular.svg" : row.path}?type=thumb" data-retina="${row.isDir ? "/img/folder-regular.svg" : row.path}?type=thumbx4"></figure></div><div class="card-content px-3 py-2">${row.path}</div></div></a></div>`;
+          }
+          if(type === 'sort'){
+            data = `${row.isDir ? 0 : 1}${row.path}`
+          }
+          return data;
+        }
+      },
+      { "data": "size",
+        "render": function(data, type, row, meta){
+          if(type === 'display'){
+            data = `<span>${row.isDir ? "-": fileSizeUnit(row.size)}</span>`
+          }
+          return data;
+        }
+      }
+    ],
+    'columnDefs': [
+      {
+        "targets": 1,
+        "className": "has-text-right",
+      }
+    ],
+    "lengthMenu": [ 10, 50, 100, 500, 1000 ],
+    "displayLength": 100, 
+    "pagingType": "full_numbers_no_ellipses",
+    "stateSave": true
+  });
+
+  $('table#filelist').DataTable().on("draw", function() {
+
+    changeListView(withThumbnail)
+
+  });
+
+  $("table#filelist").removeClass("is-hidden");
+
+}
+
+function changeListView(withThumb)
+{
+  withThumbnail = withThumb;
+
+  if(withThumbnail) {
+      $('div#thumbnail').removeClass('is-hidden');
+      $('span#listedname').addClass('is-hidden');
+      $('button#noThumbnail').removeClass('is-focused');
+      $('button#withThumbnail').addClass('is-focused');
+      $('.lazy').lazy({
+          // your configuration goes here
+          scrollDirection: 'vertical',
+          effect: 'fadeIn',
+          effectTime: 500,
+          threshold: 0,
+          visibleOnly: true
+      });
+    } else {
+      $('div#thumbnail').addClass('is-hidden');
+      $('span#listedname').removeClass('is-hidden');
+      $('button#noThumbnail').addClass('is-focused');
+      $('button#withThumbnail').removeClass('is-focused');
+    }
+}
+
+function chdir(path) {
+  $("div.modal#loading").addClass("is-active");
+  if(path === "index.html") {
+    path = path + "?type=file"
+  }
+  window.location = path;
+  $("div.modal#loading").removeClass("is-active");
+}
+
+function dirSort(a,b)
+{
+  return String.naturalCompare(a.isDir ? 0 : 1, b.isDir ? 0 : 1) || String.naturalCompare(a.path, b.path);
+}
+
+function fileSizeUnit (size) {
+
+  // 1 KB = 1024 Byte
+  const kb = 1024
+  const mb = Math.pow(kb, 2)
+  const gb = Math.pow(kb, 3)
+  const tb = Math.pow(kb, 4)
+  const pb = Math.pow(kb, 5)
+  const round = (size, unit) => {
+    return Math.round(size / unit * 100.0) / 100.0
+  }
+
+  if (size >= pb) {
+    return round(size, pb) + ' PB'
+  } else if (size >= tb) {
+    return round(size, tb) + ' TB'
+  } else if (size >= gb) {
+    return round(size, gb) + ' GB'
+  } else if (size >= mb) {
+    return round(size, mb) + ' MB'
+  } else if (size >= kb) {
+    return round(size, kb) + ' KB'
+  } else {
+    return size + ' Byte'
+  }
+}
+
+</script>
+<nav class="breadcrumb" id="filepath" aria-label="breadcrumbs">
+    <ul>
+    </ul>
+</nav>
+
+<div class="buttons has-addons is-right">
+  <button id="noThumbnail" class="button is-focused" onclick="changeListView(false);">
+    <span class="icon is-small">
+      <i class="far fa-list-alt"></i>
+    </span>
+  </button>
+  <button id="withThumbnail" class="button" onclick="changeListView(true);">
+    <span class="icon is-small">
+      <i class="fas fa-image"></i>
+  </button>
+</div>
+
+<table class="display table is-striped is-hoverable" id="filelist" style="width:100%">
+  <thead>
+    <tr>
+    <th>Name</th>
+    <th>Size</th>
+    </tr>
+  </thead>
+  <tbody id="filelist">
+  </tbody>
+</table>
+{{ end }}

@@ -1,0 +1,160 @@
+<!-- templates/layout.tmpl -->
+<!doctype html>
+<html lang="ja" class="has-navbar-fixed-top">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/css/bulma.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.css" type="text/css" media="all" />
+<script defer src="https://pro.fontawesome.com/releases/v5.10.0/js/all.js" integrity="sha384-G/ZR3ntz68JZrH4pfPJyRbjW+c0+ojii5f+GYiYwldYU69A+Ejat6yIfLSxljXxD" crossorigin="anonymous"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+$(document).ready(async function() {
+  // Check for click events on the navbar burger icon
+  $(".navbar-burger").click(function() {
+
+    // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+    $(".navbar-burger").toggleClass("is-active");
+    $(".navbar-menu").toggleClass("is-active");
+
+  });
+
+  await LoginStatusCheck();
+})
+
+function showConfirmLogout()
+{
+  $("div.modal#confirm-logout").addClass("is-active");
+  $(document).keypress(function(e) {
+    if (e.which == 13) {
+      logout()
+    }
+  });
+}
+
+function closeConfirmLogout()
+{
+  $("div.modal#confirm-logout").removeClass("is-active");
+  $("div.modal#confirm-logout").off("keypress");
+}
+
+function logout()
+{
+  $("div.modal#loading").addClass("is-active");
+  $('button#logout').prop("disabled", true);
+
+  // logout
+  $.ajax({
+    type    : 'POST',
+    url     : '/v1/logout',
+    timeout : 5000,
+  }).done(async function(data) {
+    location.reload();
+  }).fail(async function(xhr, textStatus, errorThrown) {
+    location.reload();
+  });
+
+  $("div.modal#loading").removeClass("is-active");
+  $('button#logout').prop("disabled", false);
+}
+
+async function LoginStatusCheck()
+{
+  // status check
+  $.ajax({
+    type    : 'POST',
+    url     : '/v1/login/status',
+    timeout : 5000,
+  }).done(async function(data) {
+    if(data.status === "ok") $('button#logout').removeClass("is-hidden")
+  })
+}
+
+function parseJson(data) {
+  var returnJson = {};
+  for (idx = 0; idx < data.length; idx++) {
+    returnJson[data[idx].name] = data[idx].value
+  }
+  return returnJson;
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.11/jsrender.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-base64@3.6.1/base64.min.js"></script>
+<title>Simple - Web File Browser</title>
+</head>
+<body>
+<!-- hero section -->
+<nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+  <div class="navbar-brand">
+    <a class="navbar-item" href="/">
+      <img src="/img/logo.svg" alt="Simple HTTP Fileserver" width="112" height="28">
+    </a>
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navBar">
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+      <span aria-hidden="true"></span>
+    </a>
+  </div>
+  <div id="navBar" class="navbar-menu">
+    <div class="navbar-start">
+      <a class="navbar-item" href="/"><span class="icon-text"><span class="icon"><i class="fas fa-home"></i></span><span>Home</span></span></a>
+      <a class="navbar-item" href="/public/"><span class="icon-text"><span class="icon"><i class="fas fa-lock-open"></i></span><span>Public</span></span></a>
+      <a class="navbar-item" href="/private/"><span class="icon-text"><span class="icon"><i class="fas fa-lock"></i></span><span>Private</span></span></a>
+      <a class="navbar-item" href="/token"><span class="icon-text"><span class="icon"><i class="fas fa-key"></i></span><span>Token</span></span></a>
+    </div>
+    <div class="navbar-end">
+      <div class="navbar-item">
+        <div class="buttons">
+          <button id="logout" class="button is-hidden" onclick="showConfirmLogout();"><span class="icon"><i id="reload-icon-all" class="fas fa-sign-out-alt"></i></span><span>Logout</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<!-- hero section -->
+
+<!-- body -->
+<div class="columns mx-2">
+  <div class="column">
+    {{ template "content" . }}
+  </div>
+</div>
+
+<!-- modal -->
+<div class="modal" id="loading">
+  <div class="modal-background"></div>
+  <div class="modal-content">
+    <div class="column has-text-centered has-text-centered is-full">
+    <span class="icon-text has-text-white is-large"><span class="icon"><i class="fas fa-2x fa-sync fa-spin"></i></span><span class="is-size-4 mx-3">Loading</span></span>
+    </div>
+  </div>
+</div>
+<div class="modal" id="confirm-logout">
+  <div class="modal-background"></div>
+  <div class="modal-card ">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Confirm Logout</p>
+    </header>
+    <section class="modal-card-body">
+      Are you sure you want to log out now ?
+    </section>
+    <footer class="modal-card-foot">
+      <button class="button" onclick="closeConfirmLogout();">Cancel</button>
+      <button class="button is-link" onclick="logout();"><span class="icon"><i id="reload-icon-all" class="fas fa-sign-out-alt"></i></span><span>Logout</span></button>
+    </footer>
+  </div>
+</div>
+
+<!-- footer -->
+<footer class="footer">
+<div class="content has-text-centered">
+    <p>
+      <strong>Simple Web fileserver</strong> by Satoshi MOHRI. The source code is licensed
+      <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.
+    </p>
+</div>
+</footer>
+<!-- footer -->
+</body>
+</html>
