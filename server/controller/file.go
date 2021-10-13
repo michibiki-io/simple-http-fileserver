@@ -252,6 +252,8 @@ func readSvgIconFile(mimetype *mimetype.MIME) (image []byte) {
 	switch mimetypeString {
 	case "application/pdf":
 		image, _ = os.ReadFile("./static/img/file-pdf-regular.svg")
+	case "text/css", "text/html", "text/javascript", "application/xml", "text/xml":
+		image, _ = os.ReadFile("./static/img/file-code-regular.svg")
 	// case "application/msword":
 	// 	image, _ = os.ReadFile("./static/img/file-word-regular.svg")
 	// case "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
@@ -265,7 +267,11 @@ func readSvgIconFile(mimetype *mimetype.MIME) (image []byte) {
 	// case "application/vnd.openxmlformats-officedocument.presentationml.presentation":
 	// 	image, _ = os.ReadFile("./static/img/file-powerpoint-regular.svg")
 	default:
-		image, _ = os.ReadFile("./static/img/file-regular.svg")
+		if strings.HasPrefix(mimetypeString, "text") {
+			image, _ = os.ReadFile("./static/img/file-alt-regular.svg")
+		} else {
+			image, _ = os.ReadFile("./static/img/file-regular.svg")
+		}
 	}
 
 	return
