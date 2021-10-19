@@ -1,0 +1,98 @@
+<!-- templates/index.tmpl -->
+{{ define "content" }}
+<style>
+  pre {
+    background-color: initial;
+  }
+</style>
+<link rel="stylesheet" href="{{ .contextPath }}/css/atom-one-light.min.css">
+<script src="{{ .contextPath }}/js/highlight.min.js"></script>
+<script>
+function requestNewToken()
+{
+  $("div.modal#loading").addClass("is-active");
+  $("div#error_message").addClass("is-hidden");
+  $("div#codeblock pre code").empty();
+  $("div#error_message").empty();
+  $("tbody#userdata").empty();
+
+  // load directory and files from server API
+  $.ajax({
+    type    : 'POST',
+    url     : '{{ .contextPath }}/v1/token',
+    timeout : 5000,
+  }).done(async function(data) {
+    if(data.user.Id)
+    {
+      $("tbody#userdata").append(`<tr><td class='px-5 has-text-centered'><span class="icon-text"><span class="icon"><i class="fas fa-user"></i></span><span>User ID</span></span></td><td class="px-5 has-text-left"><span>${data.user.Id}</span></td></tr>`);
+    }
+    if(data.user.Groups && jQuery.isArray(data.user.Groups))
+    {
+      for (idx=0; idx<data.user.Groups.length; idx++)
+      {
+        $("tbody#userdata").append(`<tr><td class='px-5 has-text-centered'>${idx==0 ? "<span class='icon-text'><span class='icon'><i class='fas fa-users'></i></span><span>Groups</span></span>" : ""}</td><td class="px-5 has-text-left"><span>${data.user.Groups[idx]}</span></td></tr>`);
+      }
+    }
+    if(data.expire_in){
+      cnt = Math.round(data.expire_in);
+      $("tbody#userdata").append(`<tr><td class='px-5 has-text-centered'><span class='icon-text'><span class='icon'><i class='fas fa-hourglass-half'></i></span><span>Expire in</span></span></td><td class="px-5 has-text-left"><span id="expire_in">${cnt} seconds</span></td></tr>`);
+      cnDown = setInterval(function(){
+            cnt--;
+            if(cnt <= 0){
+              clearInterval(cnDown);
+              requestNewToken();
+            }
+            if (cnt != 1) $('span#expire_in').text(cnt + " seconds");
+            else $('span#expire_in').text(cnt + " second")
+      },1000);
+    }
+    if(data.apitoken){
+      $("div#codeblock pre code").append(`{\n  "token": "${data.apitoken}"\n}`);
+      hljs.highlightAll();
+    }
+    $("div.modal#loading").removeClass("is-active");
+  }).fail(async function(xhr, textStatus, errorThrown) {
+    if (xhr.status === 401 || xhr.status === 403) {
+      location.reload();
+    } else if (xhr.status === 503) {
+      $("div#error_message").removeClass("is-hidden");
+      $("div#error_message").append(`<span class="icon-text"><span class="icon"><i class="fas fa-ban"></i></span><span>API token is not available now, Please contact your system administrator.</span></span>`);
+    }
+    $("div.modal#loading").removeClass("is-active");
+  });
+}
+
+$(document).ready(async function() {
+
+  requestNewToken();
+
+});
+</script>
+<div class="container is-max-desktop">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-12-tablet is-11-desktop is-10-widescreen">
+        <div class="box content">
+          <div class="notification is-danger is-light is-hidden" id="error_message">
+          </div>
+          <h2>Your API token</h2>
+          <div id="codeblock">
+            <pre><code class="json"></code></pre>
+          </div>
+          <h2>About You</h2>
+          <table class="table is-striped is-fullwidth">
+            <thead>
+              <tr>
+              <th class="px-5 has-text-centered"><span>Item</span></th>
+              <th class="px-5 has-text-left"><span>Content</span></th>
+              </tr>
+            </thead>
+            <tbody id="userdata">
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}

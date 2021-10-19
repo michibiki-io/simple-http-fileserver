@@ -13,3 +13,10 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+# debug file
+__debug_bin
+
+# go tmp
+go.sum
+config/permissions.json

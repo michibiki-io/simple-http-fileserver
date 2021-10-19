@@ -1,0 +1,132 @@
+<!-- templates/index.tmpl -->
+{{ define "content" }}
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/additional-methods.min.js"></script>
+<script>
+async function login()
+{
+  $('button#login').prop("disabled", true);
+  if ($('form#loginform').validate().form())
+  {
+    $("div.modal#loading").addClass("is-active");
+    $("div#error_message").addClass("is-hidden").empty();
+    $('input#username').attr('readonly',true);
+    $('input#password').attr('readonly',true);
+    var data = $('form#loginform').serializeArray();
+    data = parseJson(data);
+    $.ajax({
+      type:         'POST',
+      url:          '{{ .contextPath }}{{ .request_api }}',
+      data:         JSON.stringify(data),
+      contentType:  'application/json',
+      dataType:     'json',
+      timeout :     5000,
+    }).done(async function(data, status, xhr) {
+      $("div#error_message").removeClass("is-hidden").empty();
+      $("div#error_message").removeClass("is-danger").addClass("is-success").empty();
+      $("div#error_message").append("Authentication successful.")
+      $("div.modal#loading").removeClass("is-active");
+
+      if(xhr.status === 200 && data["redirect_to"]) {
+        setTimeout(function(){ window.location = data["redirect_to"]; }, 1000);
+      };
+    }).fail(async function(xhr, textStatus, errorThrown) {
+      if (xhr.status === 401) {
+        $("div#error_message").removeClass("is-hidden").empty();
+        $("div#error_message").append("Authentication failed. Please check your username and/or password.");
+      } else {
+        $("div#error_message").removeClass("is-hidden").empty();
+        $("div#error_message").append("Internal server error occured.");
+      }
+      $("div.modal#loading").removeClass("is-active");
+      $('input#username').attr('readonly',false);
+      $('input#password').attr('readonly',false);
+    });
+  }
+  $('button#login').prop("disabled", false);
+}
+$(document).ready(async function() {
+
+  $("div.modal#loading").addClass("is-active");
+  $('form#loginform').validate({
+    rules: {
+      username: {required: true},
+      password: {required: true}
+    },
+    messages: {
+      username: {
+        required: 'Username is required',
+      },
+      password: {
+        required: 'Password is required',
+      },
+    },
+    errorPlacement: function(error, element){
+      var elementKey = $(element).attr('id');
+      $(element).addClass("is-danger").removeClass("is-success")
+      $('#error_' + elementKey).removeClass('is-hidden').addClass('error').text(error[0].innerText);
+    },
+    success: function(error, element) {
+      var elementKey = $(element).attr('id');
+      $(element).removeClass("is-danger").addClass("is-success")
+      $('#error_' + elementKey).addClass('is-hidden').removeClass('error').text("");
+    }
+  });
+
+  $("input#password").keypress(function(e) {
+    if (e.which == 13) {
+      login()
+    }
+  });
+
+  $("div.modal#loading").removeClass("is-active");
+
+});
+</script>
+<section class="hero is-white mt-5">
+  <div class="hero-body has-text-centered">
+    <img src="{{ .contextPath }}/img/hero-logo.svg" width="240px" height="144px" />
+  </div>
+</section>
+
+<div class="container is-max-desktop">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8-tablet is-7-desktop is-6-widescreen">
+        <div class="box">
+          <div class="notification is-danger is-light is-hidden" id="error_message">
+          </div>
+          <form id="loginform">
+            <div class="field">
+              <label for="" class="label">Username</label>
+              <div class="control has-icons-left">
+                <input type="text" placeholder="username" class="input" name="username" id="username">
+                <span class="icon is-small is-left">
+                  <i class="far fa-id-card"></i>
+                </span>
+                <p class="help is-danger is-hidden" id="error_username"></p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="" class="label">Password</label>
+              <div class="control has-icons-left">
+                <input type="password" placeholder="********" class="input" name="password" id="password">
+                <span class="icon is-small is-left">
+                  <i class="fa fa-lock"></i>
+                </span>
+                <p class="help is-danger is-hidden" id="error_password"></p>
+                <input type="hidden" name="redirect_to" id="redirect_to" value='{{ .redirect_to }}'>
+              </div>
+            </div>
+          </form>
+          <div class="field pt-3">
+            <button class="button is-link" onclick="login();" id="login">
+              Login
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{{ end }}
