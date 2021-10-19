@@ -16,7 +16,7 @@ async function login()
     data = parseJson(data);
     $.ajax({
       type:         'POST',
-      url:          '{{ .request_api }}',
+      url:          '{{ .contextPath }}{{ .request_api }}',
       data:         JSON.stringify(data),
       contentType:  'application/json',
       dataType:     'json',
@@ -85,7 +85,7 @@ $(document).ready(async function() {
 </script>
 <section class="hero is-white mt-5">
   <div class="hero-body has-text-centered">
-    <img src="/img/hero-logo.svg" width="240px" height="144px" />
+    <img src="{{ .contextPath }}/img/hero-logo.svg" width="240px" height="144px" />
   </div>
 </section>
 

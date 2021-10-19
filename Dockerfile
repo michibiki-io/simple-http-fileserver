@@ -1,3 +1,6 @@
+#####################################
+########## For Development ##########
+#####################################
 FROM golang:latest as development
 
 ARG LIBVIPS_VERSION=8.9.2
@@ -45,6 +48,7 @@ RUN chmod go+x /opt/entrypoint.sh
 # Envs
 ENV LD_LIBRARY_PATH="/opt/vips/lib:$LD_LIBRARY_PATH" \
     PKG_CONFIG_PATH="/opt/vips/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/X11/lib/pkgconfig" \
+    CONTEXT_PATH="" \
     AUTH_SERVER_AUTH_URL=http://localhost:80/v1/authorize \
     AUTH_SERVER_VERIFY_URL=http://localhost:80/v1/verify \
     AUTH_SERVER_REFRESH_URL=http://localhost:80/v1/refresh \
@@ -79,7 +83,9 @@ ENTRYPOINT ["/opt/entrypoint.sh"]
 
 CMD ["/bin/bash"]
 
-### Runtime Image
+#################################
+########## For RUNTIME ##########
+#################################
 FROM debian:bullseye-slim as runtime
 
 RUN apt-get update && \
@@ -111,6 +117,7 @@ COPY ./templates /opt/go/templates
 
 # Envs
 ENV GIN_MODE=release \ 
+    CONTEXT_PATH="" \
     LD_LIBRARY_PATH="/opt/vips/lib:$LD_LIBRARY_PATH" \
     AUTH_SERVER_AUTH_URL=http://localhost:80/v1/authorize \
     AUTH_SERVER_VERIFY_URL=http://localhost:80/v1/verify \

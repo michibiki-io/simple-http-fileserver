@@ -282,7 +282,10 @@ func ShowAuthorizeInterfaceHander(url string) gin.HandlerFunc {
 		}
 
 		if !userFound || userModel.Expires == 0 || userModel.Id == "" {
-			c.HTML(http.StatusOK, "login", gin.H{"request_api": url, "redirect_to": c.Request.URL.Path})
+			c.HTML(http.StatusOK, "login", gin.H{
+				"request_api": url,
+				"redirect_to": c.Request.URL.Path,
+				"contextPath": utility.GetContextPath()})
 			c.Abort()
 		} else {
 			c.Next()

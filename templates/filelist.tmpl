@@ -1,12 +1,12 @@
 <!-- templates/files.tmpl -->
 {{ define "content" }}
-<script type="text/javascript" src="/js/natural-compare-lite.js"></script>
-<script type="text/javascript" src="/js/jquery.lazy.min.js"></script>
-<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
-<script type="text/javascript" src="/js/dataTables.bulma.min.js"></script>
-<script type="text/javascript" src="/js/jquery.lazy.min.js"></script>
-<script type="text/javascript" src="/js/full_numbers_no_ellipses.js"></script>
-<link rel="stylesheet" href="/css/dataTables.bulma.min.css">
+<script type="text/javascript" src="{{ .contextPath }}/js/natural-compare-lite.js"></script>
+<script type="text/javascript" src="{{ .contextPath }}/js/jquery.lazy.min.js"></script>
+<script type="text/javascript" src="{{ .contextPath }}/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="{{ .contextPath }}/js/dataTables.bulma.min.js"></script>
+<script type="text/javascript" src="{{ .contextPath }}/js/jquery.lazy.min.js"></script>
+<script type="text/javascript" src="{{ .contextPath }}/js/full_numbers_no_ellipses.js"></script>
+<link rel="stylesheet" href="{{ .contextPath }}/css/dataTables.bulma.min.css">
 <script>
 // descending order
 var desc = true;
@@ -29,7 +29,7 @@ function getFileList() {
   // load directory and files from server API
   $.ajax({
     type    : 'POST',
-    url     : '{{ .absoluteFilePath }}',
+    url     : '{{ .contextPath }}{{ .absoluteFilePath }}',
     timeout : 5000,
   }).done(async function(data) {
     fileList = data["list"].slice()
@@ -63,7 +63,7 @@ async function CreateFileListView()
         "render" : function(data, type, row, meta){
           if(type === 'display') {
             data = `<span class="icon-text" id="listedname"><span class="icon"><i class="far ${row.isDir ? 'fa-folder' : 'fa-file'}"></i></span><a href="${row.path}${row.isDir ? "/" : ""}" ><span>${row.path}</span></a></span>`;
-            data += `<div class="column is-11-mobile is-5-tablet is-4-desktop is-hidden" id="thumbnail"><a href="${row.path}${row.isDir ? "/" : ""}" ><div class="card"><div class="card-image"><figure class="image is-4by3"><img alt="image" class="lazy" src="/img/loading02.svg" data-src="${row.isDir ? "/img/folder-regular.svg" : row.path}?type=thumb" data-retina="${row.isDir ? "/img/folder-regular.svg" : row.path}?type=thumbx4"></figure></div><div class="card-content px-3 py-2">${row.path}</div></div></a></div>`;
+            data += `<div class="column is-11-mobile is-5-tablet is-4-desktop is-hidden" id="thumbnail"><a href="${row.path}${row.isDir ? "/" : ""}" ><div class="card"><div class="card-image"><figure class="image is-4by3"><img alt="image" class="lazy" src="{{ .contextPath }}/img/loading02.svg" data-src="${row.isDir ? "{{ .contextPath }}/img/folder-regular.svg" : row.path}?type=thumb" data-retina="${row.isDir ? "{{ .contextPath }}/img/folder-regular.svg" : row.path}?type=thumbx4"></figure></div><div class="card-content px-3 py-2">${row.path}</div></div></a></div>`;
           }
           if(type === 'sort'){
             data = `${row.isDir ? 0 : 1}${row.path}`

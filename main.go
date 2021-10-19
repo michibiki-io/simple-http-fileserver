@@ -7,31 +7,33 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/michibiki-io/simple-http-fileserver/server/controller"
 	"github.com/michibiki-io/simple-http-fileserver/server/service"
+	"github.com/michibiki-io/simple-http-fileserver/server/utility"
 )
 
 func main() {
 
+	contextPath := utility.GetContextPath()
 	engine := gin.Default()
 	engine.LoadHTMLGlob("templates/*.tmpl")
 	engine.HTMLRender = createRender()
-	engine.Use(controller.CreateTransparencyFileSystemHandler("/", "", service.DotFileHidingFileSystem(http.Dir("static"))))
+	engine.Use(controller.CreateTransparencyFileSystemHandler(contextPath+"/", "", service.DotFileHidingFileSystem(http.Dir("static"))))
 	if handler, err := controller.CreateSessionHandler(); err != nil {
 		panic(err)
 	} else {
 		engine.Use(handler)
 	}
 
-	root := engine.Group("/")
+	root := engine.Group(contextPath + "/")
 	{
 		root.GET("/", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "index", gin.H{})
+			c.HTML(http.StatusOK, "index", gin.H{"contextPath": contextPath})
 		})
 
 		public := root.Group("/public")
 		{
-			public.GET("/*filepath", controller.FileSystemHandler("/public", controller.GetDirectoryFileHandler))
-			public.HEAD("/*filepath", controller.FileSystemHandler("/public", controller.GetDirectoryFileHandler))
-			public.POST("/*filepath", controller.FileSystemHandler("/public", controller.PostDirectoryFileHandler))
+			public.GET("/*filepath", controller.FileSystemHandler(contextPath, "/public", controller.GetDirectoryFileHandler))
+			public.HEAD("/*filepath", controller.FileSystemHandler(contextPath, "/public", controller.GetDirectoryFileHandler))
+			public.POST("/*filepath", controller.FileSystemHandler(contextPath, "/public", controller.PostDirectoryFileHandler))
 		}
 
 		private := root.Group("/private").Use(
@@ -44,9 +46,9 @@ func main() {
 			controller.ShowAuthorizeInterfaceHander("/v1/login/ui"),
 			controller.FolderPermissionHandler("/private"))
 		{
-			private.GET("/*filepath", controller.FileSystemHandler("/private", controller.GetDirectoryFileHandler))
-			private.HEAD("/*filepath", controller.FileSystemHandler("/private", controller.GetDirectoryFileHandler))
-			private.POST("/*filepath", controller.FileSystemHandler("/private", controller.PostDirectoryFileHandler))
+			private.GET("/*filepath", controller.FileSystemHandler(contextPath, "/private", controller.GetDirectoryFileHandler))
+			private.HEAD("/*filepath", controller.FileSystemHandler(contextPath, "/private", controller.GetDirectoryFileHandler))
+			private.POST("/*filepath", controller.FileSystemHandler(contextPath, "/private", controller.PostDirectoryFileHandler))
 		}
 
 		root.GET("/token",
@@ -55,11 +57,11 @@ func main() {
 			controller.FromStoreToSessionHandler("tokens", "apitokens"),
 			controller.ShowAuthorizeInterfaceHander("/v1/login/token"),
 			func(c *gin.Context) {
-				c.HTML(http.StatusOK, "token", gin.H{})
+				c.HTML(http.StatusOK, "token", gin.H{"contextPath": contextPath})
 			})
 	}
 
-	v1 := engine.Group("/v1")
+	v1 := engine.Group(contextPath + "/v1")
 	{
 		login := v1.Group("/login")
 		{

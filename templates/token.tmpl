@@ -5,8 +5,8 @@
     background-color: initial;
   }
 </style>
-<link rel="stylesheet" href="/css/atom-one-light.min.css">
-<script src="/js/highlight.min.js"></script>
+<link rel="stylesheet" href="{{ .contextPath }}/css/atom-one-light.min.css">
+<script src="{{ .contextPath }}/js/highlight.min.js"></script>
 <script>
 function requestNewToken()
 {
@@ -19,7 +19,7 @@ function requestNewToken()
   // load directory and files from server API
   $.ajax({
     type    : 'POST',
-    url     : '/v1/token',
+    url     : '{{ .contextPath }}/v1/token',
     timeout : 5000,
   }).done(async function(data) {
     if(data.user.Id)

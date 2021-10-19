@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/h2non/bimg"
 )
@@ -25,6 +26,14 @@ func GetEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func GetContextPath() string {
+	contextPath := GetEnv("CONTEXT_PATH", "")
+	if len(contextPath) > 0 && !strings.HasPrefix(contextPath, "/") {
+		contextPath = "/" + contextPath
+	}
+	return contextPath
 }
 
 func GetIntEnv(key string, fallback int) int {

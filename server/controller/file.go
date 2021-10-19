@@ -42,10 +42,10 @@ func CreateTransparencyFileSystemHandler(urlPrefix, transparentRule string, fs s
 	}
 }
 
-func FileSystemHandler(prefixFilePath string, directoryFileHandler func(*gin.Context, http.File, string, string)) gin.HandlerFunc {
+func FileSystemHandler(contextPath, prefixFilePath string, directoryFileHandler func(*gin.Context, http.File, string, string)) gin.HandlerFunc {
 
 	fileSystem := service.DotFileHidingFileSystem(http.Dir(prefixFilePath))
-	fileServer := http.StripPrefix(prefixFilePath, http.FileServer(fileSystem))
+	fileServer := http.StripPrefix(contextPath+prefixFilePath, http.FileServer(fileSystem))
 
 	return func(c *gin.Context) {
 
@@ -53,7 +53,7 @@ func FileSystemHandler(prefixFilePath string, directoryFileHandler func(*gin.Con
 		node, err := fileSystem.Open(filePath)
 		if err != nil {
 			if c.Request.Method == "GET" {
-				c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": filePath})
+				c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": filePath, "contextPath": utility.GetContextPath()})
 				c.Abort()
 			} else {
 				c.JSON(http.StatusNotFound, gin.H{"error": "file not found"})
@@ -63,7 +63,7 @@ func FileSystemHandler(prefixFilePath string, directoryFileHandler func(*gin.Con
 			defer node.Close()
 			if fileInfo, err := node.Stat(); err != nil {
 				if c.Request.Method == "GET" {
-					c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": filePath})
+					c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": filePath, "contextPath": utility.GetContextPath()})
 					c.Abort()
 				} else {
 					c.JSON(http.StatusNotFound, gin.H{"error": "file not found"})
@@ -161,7 +161,7 @@ func FolderPermissionHandler(prefix string) gin.HandlerFunc {
 			}
 
 			if c.Request.Method == "GET" {
-				c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": prefix + url})
+				c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": prefix + url, "contextPath": utility.GetContextPath()})
 				c.Abort()
 			} else {
 				c.Set("authorization", model.AuthorizationState{StatusCode: http.StatusForbidden})
@@ -182,7 +182,7 @@ func GetDirectoryFileHandler(c *gin.Context, node http.File, prefixFilePath stri
 	if !strings.HasSuffix(filePath, "/") {
 		c.Redirect(http.StatusTemporaryRedirect, c.Request.URL.Path+"/")
 	} else {
-		c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": prefixFilePath + filePath})
+		c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": prefixFilePath + filePath, "contextPath": utility.GetContextPath()})
 	}
 
 }
@@ -196,7 +196,7 @@ func PostDirectoryFileHandler(c *gin.Context, node http.File, prefixFilePath str
 	}
 	if fileInfoList, err := node.Readdir(-1); err != nil {
 		if c.Request.Method == "GET" {
-			c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": ""})
+			c.HTML(http.StatusOK, "files", gin.H{"absoluteFilePath": "", "contextPath": utility.GetContextPath()})
 			c.Abort()
 		} else {
 			c.Set("authorization", model.AuthorizationState{StatusCode: http.StatusNotFound})

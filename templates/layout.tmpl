@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="/css/bulma.min.css">
+<link rel="stylesheet" href="{{ .contextPath }}/css/bulma.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome-animation/0.2.1/font-awesome-animation.css" type="text/css" media="all" />
 <script defer src="https://pro.fontawesome.com/releases/v5.10.0/js/all.js" integrity="sha384-G/ZR3ntz68JZrH4pfPJyRbjW+c0+ojii5f+GYiYwldYU69A+Ejat6yIfLSxljXxD" crossorigin="anonymous"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -46,7 +46,7 @@ function logout()
   // logout
   $.ajax({
     type    : 'POST',
-    url     : '/v1/logout',
+    url     : '{{ .contextPath }}/v1/logout',
     timeout : 5000,
   }).done(async function(data) {
     location.reload();
@@ -63,7 +63,7 @@ async function LoginStatusCheck()
   // status check
   $.ajax({
     type    : 'POST',
-    url     : '/v1/login/status',
+    url     : '{{ .contextPath }}/v1/login/status',
     timeout : 5000,
   }).done(async function(data) {
     if(data.status === "ok") $('button#logout').removeClass("is-hidden")
@@ -88,7 +88,7 @@ function parseJson(data) {
 <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item" href="/">
-      <img src="/img/logo.svg" alt="Simple HTTP Fileserver" width="112" height="28">
+      <img src="{{ .contextPath }}/img/logo.svg" alt="Simple HTTP Fileserver" width="112" height="28">
     </a>
     <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navBar">
       <span aria-hidden="true"></span>
@@ -98,10 +98,10 @@ function parseJson(data) {
   </div>
   <div id="navBar" class="navbar-menu">
     <div class="navbar-start">
-      <a class="navbar-item" href="/"><span class="icon-text"><span class="icon"><i class="fas fa-home"></i></span><span>Home</span></span></a>
-      <a class="navbar-item" href="/public/"><span class="icon-text"><span class="icon"><i class="fas fa-lock-open"></i></span><span>Public</span></span></a>
-      <a class="navbar-item" href="/private/"><span class="icon-text"><span class="icon"><i class="fas fa-lock"></i></span><span>Private</span></span></a>
-      <a class="navbar-item" href="/token"><span class="icon-text"><span class="icon"><i class="fas fa-key"></i></span><span>Token</span></span></a>
+      <a class="navbar-item" href="{{ .contextPath }}/"><span class="icon-text"><span class="icon"><i class="fas fa-home"></i></span><span>Home</span></span></a>
+      <a class="navbar-item" href="{{ .contextPath }}/public/"><span class="icon-text"><span class="icon"><i class="fas fa-lock-open"></i></span><span>Public</span></span></a>
+      <a class="navbar-item" href="{{ .contextPath }}/private/"><span class="icon-text"><span class="icon"><i class="fas fa-lock"></i></span><span>Private</span></span></a>
+      <a class="navbar-item" href="{{ .contextPath }}/token/"><span class="icon-text"><span class="icon"><i class="fas fa-key"></i></span><span>Token</span></span></a>
     </div>
     <div class="navbar-end">
       <div class="navbar-item">
