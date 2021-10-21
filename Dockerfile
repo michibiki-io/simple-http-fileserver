@@ -73,7 +73,7 @@ COPY . .
 RUN GOBIN=/tmp/ go get github.com/go-delve/delve/cmd/dlv@master && \
     mv /tmp/dlv $GOPATH/bin/dlv-dap && \
     go install golang.org/x/tools/gopls@latest && \
-    go mod tidy && go build -o ./simple.go ./main.go
+    go mod tidy && go build -o ./simple ./main.go
 
 VOLUME ["/opt/go", "/public", "/private"]
 
@@ -110,7 +110,7 @@ RUN mkdir -p /opt/go && \
     mkdir -p /opt/go/config && \
     mkdir -p /opt/vips
 
-COPY --from=development /opt/go/simple.go /opt/go/simple.go
+COPY --from=development /opt/go/simple /opt/go/simple
 COPY --from=development /opt/vips /opt/vips
 COPY ./static /opt/go/static
 COPY ./templates /opt/go/templates
@@ -143,12 +143,10 @@ RUN chmod go+x /opt/entrypoint.sh
 
 WORKDIR /opt/go
 
-USER go
-
 EXPOSE 8080
 
 VOLUME ["/opt/go/config", "/public", "/private"]
 
 ENTRYPOINT ["/opt/entrypoint.sh"]
 
-CMD ["/opt/go/simple.go"]
+CMD ["/opt/go/simple"]
