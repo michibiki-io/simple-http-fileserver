@@ -77,7 +77,7 @@ RUN GOBIN=/tmp/ go get github.com/go-delve/delve/cmd/dlv@master && \
 
 VOLUME ["/opt/go", "/public", "/private"]
 
-EXPOSE 80
+EXPOSE 8080
 
 ENTRYPOINT ["/opt/entrypoint.sh"]
 
@@ -145,7 +145,7 @@ WORKDIR /opt/go
 
 USER go
 
-EXPOSE 80
+EXPOSE 8080
 
 VOLUME ["/opt/go/config", "/public", "/private"]
 

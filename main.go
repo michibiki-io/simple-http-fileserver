@@ -44,7 +44,7 @@ func main() {
 			controller.FromStoreToSessionHandler("user", "user"),
 			controller.FromStoreToSessionHandler("tokens", "tokens"),
 			controller.ShowAuthorizeInterfaceHander("/v1/login/ui"),
-			controller.FolderPermissionHandler("/private"))
+			controller.FolderPermissionHandler(contextPath, "/private"))
 		{
 			private.GET("/*filepath", controller.FileSystemHandler(contextPath, "/private", controller.GetDirectoryFileHandler))
 			private.HEAD("/*filepath", controller.FileSystemHandler(contextPath, "/private", controller.GetDirectoryFileHandler))
@@ -111,7 +111,7 @@ func main() {
 			controller.Deauthorize,
 			controller.ClearSession)
 	}
-	engine.Run(":80")
+	engine.Run(":8080")
 }
 
 func createRender() multitemplate.Renderer {
