@@ -3,6 +3,7 @@ module github.com/michibiki-io/simple-http-fileserver
 go 1.17
 
 require (
+	github.com/bmatcuk/doublestar/v4 v4.0.2
 	github.com/gabriel-vasile/mimetype v1.3.1
 	github.com/gin-contrib/multitemplate v0.0.0-20210428235909-8a2f6dd269a0
 	github.com/gin-contrib/sessions v0.0.3

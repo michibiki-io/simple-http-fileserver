@@ -128,10 +128,10 @@ func FileSystemHandler(contextPath, prefixFilePath string, directoryFileHandler 
 	}
 }
 
-func FolderPermissionHandler(prefix string) gin.HandlerFunc {
+func FolderPermissionHandler(contextPath, prefix string) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
-		url := strings.TrimPrefix(c.Request.URL.Path, prefix)
+		url := strings.TrimPrefix(c.Request.URL.Path, contextPath+prefix)
 
 		// check permission
 		authorized := []string{}
