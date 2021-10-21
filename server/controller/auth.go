@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bmatcuk/doublestar/v4"
 	"github.com/gin-gonic/gin"
 	"github.com/michibiki-io/simple-http-fileserver/server/model"
 	"github.com/michibiki-io/simple-http-fileserver/server/service"
@@ -293,19 +294,16 @@ func ShowAuthorizeInterfaceHander(url string) gin.HandlerFunc {
 	}
 }
 
-func isPermitted(url string) (groups []string) {
+func isPermitted(url string) (permitted []string) {
 
-	groups = []string{}
+	permitted = []string{}
 
-	groups, ok := folderPermissions[url]
+	permitted, ok := folderPermissions[url]
 	if !ok {
 		for key, tmp := range folderPermissions {
-			if strings.HasSuffix(key, "*") {
-				prefix := strings.TrimSuffix(key, "*")
-				if url == prefix || strings.HasPrefix(url, prefix) {
-					groups = tmp
-					return
-				}
+			if ok, _ := doublestar.PathMatch(key, url); ok {
+				permitted = tmp
+				return
 			}
 		}
 	}
