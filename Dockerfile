@@ -42,9 +42,6 @@ RUN mkdir -p /opt/go && \
     echo "go ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
     echo '/opt/vips/lib' > /etc/ld.so.conf.d/vips.conf
 
-COPY entrypoint.sh /opt
-RUN chmod go+x /opt/entrypoint.sh
-
 # Envs
 ENV LD_LIBRARY_PATH="/opt/vips/lib:$LD_LIBRARY_PATH" \
     PKG_CONFIG_PATH="/opt/vips/lib/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib/pkgconfig:/usr/X11/lib/pkgconfig" \
@@ -74,6 +71,9 @@ RUN GOBIN=/tmp/ go get github.com/go-delve/delve/cmd/dlv@master && \
     mv /tmp/dlv $GOPATH/bin/dlv-dap && \
     go install golang.org/x/tools/gopls@latest && \
     go mod tidy && go build -o ./simple ./main.go
+
+COPY entrypoint.sh /opt
+RUN chmod go+x /opt/entrypoint.sh
 
 VOLUME ["/opt/go", "/public", "/private"]
 
