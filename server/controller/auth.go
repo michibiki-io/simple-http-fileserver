@@ -157,6 +157,13 @@ func Deauthorize(c *gin.Context) {
 
 func ProcessAccessToken(c *gin.Context) {
 
+	if tmp, ok := c.Get("isPublic"); ok {
+		if isPublic, _ := tmp.(bool); isPublic {
+			c.Next()
+			return
+		}
+	}
+
 	// get from previous token
 	tokenSet, _ := getTokenSetFromStore(c)
 
@@ -215,6 +222,13 @@ func StatusCheck(c *gin.Context) {
 
 func VerifyAuth(c *gin.Context) {
 
+	if tmp, ok := c.Get("isPublic"); ok {
+		if isPublic, _ := tmp.(bool); isPublic {
+			c.Next()
+			return
+		}
+	}
+
 	// get user info from cookie
 	userModel, userFound := getUserFromStore(c)
 
@@ -271,6 +285,13 @@ func VerifyAuth(c *gin.Context) {
 func ShowAuthorizeInterfaceHander(url string) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+
+		if tmp, ok := c.Get("isPublic"); ok {
+			if isPublic, _ := tmp.(bool); isPublic {
+				c.Next()
+				return
+			}
+		}
 
 		// get user info from cookie
 		userModel := model.User{}

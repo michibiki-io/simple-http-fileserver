@@ -13,6 +13,13 @@ func FromStoreToSessionHandler(fromStoreKey, toSessionKey string) gin.HandlerFun
 
 	return func(c *gin.Context) {
 
+		if tmp, ok := c.Get("isPublic"); ok {
+			if isPublic, _ := tmp.(bool); isPublic {
+				c.Next()
+				return
+			}
+		}
+
 		session := sessions.Default(c)
 
 		if result, ok := c.Get(fromStoreKey); ok {
@@ -31,6 +38,13 @@ func FromStoreToSessionHandler(fromStoreKey, toSessionKey string) gin.HandlerFun
 func FromSessionToStoreHandler(fromSessionKey, toStoreKey string) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+
+		if tmp, ok := c.Get("isPublic"); ok {
+			if isPublic, _ := tmp.(bool); isPublic {
+				c.Next()
+				return
+			}
+		}
 
 		session := sessions.Default(c)
 
