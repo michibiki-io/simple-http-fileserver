@@ -18,9 +18,12 @@ class SimpleClient:
     ENDPOINT_AUTHORIZE = "/v1/login/api"
     ENDPOINT_REFRESH = "/v1/refresh/api"
 
-    def __init__(self, url, jsonPath, timeout=(2.0, 5.0)):
+    def __init__(self, url: str, jsonPath: str, timeout=(2.0, 5.0)):
 
-        self._url = url
+        if url.endswith("/"):
+            self._url = url[:-1]
+        else:
+            self._url = url
         self._jsonPath = jsonPath
         self._json = ""
         self._timeout = timeout
@@ -38,8 +41,11 @@ class SimpleClient:
             current = int(time.time())
             if current < int(self._json["expire_in"]):
                 # access_token を再取得
-                self.Refresh()
-                verified = True
+                try:
+                    self.Refresh()
+                    verified = True
+                except:
+                    verified = False
 
         # API KEY を使ってサーバーに 認証をかける
         if verified == False and len(apikey) != 0:
@@ -67,21 +73,20 @@ class SimpleClient:
 
         if not(requestUrl.startswith(self._url)):
             requestUrl = self._url + requestUrl
-
-        if Path(self._jsonPath).exists():
-            with open(self._jsonPath, 'r') as f:
-                self._json = json.load(f)
-
-        if not "access_token" in self._json:
-            self.Refresh()
             
-        headers = {"authorization": "Bearer " + self._json["access_token"]}
-        response = requests.post(url, headers=headers, verify=False, timeout=self._timeout)
+        # no auth header
+        response = requests.post(url, headers=None, verify=False, timeout=self._timeout)
 
-        if response.status_code != 200:
-            self.Refresh()
+        if response.status_code == 401 or response.status_code == 403:
+            if not "access_token" in self._json:
+                self.Refresh()
             headers = {"authorization": "Bearer " + self._json["access_token"]}
             response = requests.post(url, headers=headers, verify=False, timeout=self._timeout)
+
+            if response.status_code == 401 or response.status_code == 403:
+                self.Refresh()
+                headers = {"authorization": "Bearer " + self._json["access_token"]}
+                response = requests.post(url, headers=headers, verify=False, timeout=self._timeout)
 
         if response.status_code == 200:
             try:
@@ -91,8 +96,10 @@ class SimpleClient:
                     return io.BytesIO(response.content)
                 else:
                     raise RuntimeError(e)
-        else:
+        elif response.status_code == 401 or response.status_code == 403:
             raise RuntimeError("[Request] authentication faild")
+        elif response.status_code == 404:
+            raise RuntimeError("[Request] file not found")
 
     def Refresh(self):
 
