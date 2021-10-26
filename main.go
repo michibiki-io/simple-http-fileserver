@@ -37,6 +37,7 @@ func main() {
 		}
 
 		private := root.Group("/private").Use(
+			controller.IsFolderPublicHandler(contextPath, "/private"),
 			controller.FromSessionToStoreHandler("user", "user"),
 			controller.FromSessionToStoreHandler("tokens", "tokens"),
 			controller.ProcessAccessToken,

@@ -30,7 +30,7 @@ function getFileList() {
   $.ajax({
     type    : 'POST',
     url     : '{{ .contextPath }}{{ .absoluteFilePath }}',
-    timeout : 5000,
+    timeout : 10000,
   }).done(async function(data) {
     fileList = data["list"].slice()
     bcList = data["breadcrumb"].slice()
@@ -84,6 +84,7 @@ async function CreateFileListView()
       {
         "targets": 1,
         "className": "has-text-right",
+        "searchable": false
       }
     ],
     "lengthMenu": [ 10, 50, 100, 500, 1000 ],

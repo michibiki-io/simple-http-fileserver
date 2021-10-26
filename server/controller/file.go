@@ -128,9 +128,34 @@ func FileSystemHandler(contextPath, prefixFilePath string, directoryFileHandler 
 	}
 }
 
+func IsFolderPublicHandler(contextPath, prefix string) gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		url := strings.TrimPrefix(c.Request.URL.Path, contextPath+prefix)
+
+		// check permission
+		authorized := []string{}
+		if authorized = isPermitted(url); len(authorized) == 0 {
+			if defaultPermission {
+				c.Set("isPublic", true)
+			}
+		} else if len(authorized) == 1 && authorized[0] == "**" {
+			c.Set("isPublic", true)
+		}
+	}
+}
+
 func FolderPermissionHandler(contextPath, prefix string) gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+
+		if tmp, ok := c.Get("isPublic"); ok {
+			if isPublic, _ := tmp.(bool); isPublic {
+				c.Next()
+				return
+			}
+		}
+
 		url := strings.TrimPrefix(c.Request.URL.Path, contextPath+prefix)
 
 		// check permission
@@ -142,6 +167,8 @@ func FolderPermissionHandler(contextPath, prefix string) gin.HandlerFunc {
 				c.Set("authorization", model.AuthorizationState{StatusCode: http.StatusForbidden})
 				c.Next()
 			}
+		} else if len(authorized) == 1 && authorized[0] == "*" {
+			c.Next()
 		} else {
 			// get user model from previous handler
 			userModel := model.User{}
